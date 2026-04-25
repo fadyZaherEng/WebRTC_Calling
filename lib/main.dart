@@ -4,10 +4,11 @@ import 'package:permission_handler/permission_handler.dart';
 import 'core/theme.dart';
 import 'logic/call_cubit/call_cubit.dart';
 import 'ui/screens/home_screen.dart';
+import 'dart:math';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Request permissions
   await [
     Permission.camera,
@@ -23,7 +24,17 @@ class VocalisApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => CallCubit()..connect('my_user_id'), // Mock user ID
+//Random user ID for demo purposes; replace with actual auth logic in production
+//     في المستقبل (Production):
+//     لما التطبيق يكون جاهز وفيه نظام تسجيل دخول (Login)، الـ ID ده هيجي من:
+//
+//     Firebase Auth: اللي هو الـ User.uid.
+//     أو قاعدة البيانات بتاعتك: الرقم التعريفي للمستخدم.
+//     نصيحة للتجربة: عشان ما تقعدش تغير الكود كل شوية، ممكن تخلي الـ ID رقم عشوائي مؤقتاً:
+//
+
+      create: (context) =>
+          CallCubit()..connect('user_${Random().nextInt(100)}'),
       child: MaterialApp(
         title: 'Vocalis WebRTC',
         debugShowCheckedModeBanner: false,

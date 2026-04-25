@@ -1,5 +1,6 @@
 class AppConstants {
-  static const String signalingServerUrl = 'https://your-signaling-server.herokuapp.com'; // Replace with your server URL
+  static const String signalingServerUrl =
+      'https://thick-terms-hammer.loca.lt'; // Replace with your actual signaling server URL
   static const Map<String, dynamic> iceServers = {
     'iceServers': [
       {'urls': 'stun:stun.l.google.com:19302'},
