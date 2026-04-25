@@ -1,0 +1,12 @@
+{
+  "name": "vocalis-signaling-server",
+  "version": "1.0.0",
+  "description": "Signaling server for Vocalis WebRTC",
+  "main": "signaling-server.js",
+  "scripts": {
+    "start": "node signaling-server.js"
+  },
+  "dependencies": {
+    "socket.io": "^4.7.2"
+  }
+}
