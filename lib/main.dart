@@ -5,10 +5,16 @@ import 'core/theme.dart';
 import 'logic/call_cubit/call_cubit.dart';
 import 'ui/screens/home_screen.dart';
 import 'dart:math';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   // Request permissions
   await [
     Permission.camera,

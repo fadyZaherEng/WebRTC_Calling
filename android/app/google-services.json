@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "116175666247",
+    "project_id": "uper-ec118",
+    "storage_bucket": "uper-ec118.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:116175666247:android:3bc2128a04fbf270ad4562",
+        "android_client_info": {
+          "package_name": "com.antigravity.vocalis.vocalis_webrtc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLf47QZ9IvDg0Pa2lOG1CS5vm6Be8yS3M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:116175666247:android:8bc160561463da40ad4562",
+        "android_client_info": {
+          "package_name": "com.example.uper_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLf47QZ9IvDg0Pa2lOG1CS5vm6Be8yS3M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
