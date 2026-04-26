@@ -39,6 +39,32 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.video_chat_rounded, size: 80, color: Color(0xFF6366F1)),
+              const SizedBox(height: 16),
+              BlocBuilder<CallCubit, CallState>(
+                builder: (context, state) {
+                  final userId = context.read<CallCubit>().currentUserId;
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('Your ID: ', style: TextStyle(color: Colors.grey)),
+                        Text(
+                          userId ?? 'Connecting...',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF6366F1),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 32),
               TextField(
                 controller: _targetIdController,

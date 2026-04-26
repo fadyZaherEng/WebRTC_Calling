@@ -11,11 +11,14 @@ class CallCubit extends Cubit<CallState> {
   late WebRTCService _webRTCService;
   final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
   final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
+  String? _currentUserId;
 
   CallCubit() : super(CallInitial()) {
     _initRenderers();
     _initServices();
   }
+
+  String? get currentUserId => _currentUserId;
 
   Future<void> _initRenderers() async {
     await _localRenderer.initialize();
@@ -37,7 +40,7 @@ class CallCubit extends Cubit<CallState> {
       onIceCandidate: (candidate) {
         if (state is CallActive) {
           final call = (state as CallActive).call;
-          final peerId = call.callerId == 'me' ? call.receiverId : call.callerId;
+          final peerId = call.callerId == _currentUserId ? call.receiverId : call.callerId;
           _signalingService.sendIceCandidate(peerId, candidate.toMap());
         }
       },
@@ -45,6 +48,7 @@ class CallCubit extends Cubit<CallState> {
   }
 
   void connect(String userId) {
+    _currentUserId = userId;
     _signalingService.connect(userId);
   }
 
@@ -52,8 +56,8 @@ class CallCubit extends Cubit<CallState> {
   Future<void> startCall(String receiverId, String receiverName, CallType type) async {
     final call = CallModel(
       id: const Uuid().v4(),
-      callerId: 'me', // Real implementation would use actual user ID
-      callerName: 'Me',
+      callerId: _currentUserId ?? 'unknown',
+      callerName: _currentUserId ?? 'User',
       receiverId: receiverId,
       receiverName: receiverName,
       type: type,
@@ -75,11 +79,34 @@ class CallCubit extends Cubit<CallState> {
     ));
   }
 
+  RTCSessionDescription? _pendingOffer;
+
+  // Signaling Handlers
+  void _onIncomingCall(CallModel call) {
+    emit(CallRinging(call));
+  }
+
+  Future<void> _onOfferReceived(Map<String, dynamic> data) async {
+    _pendingOffer = RTCSessionDescription(data['sdp'], data['type']);
+  }
+
+  final List<RTCIceCandidate> _iceCandidateQueue = [];
+
   Future<void> acceptCall() async {
-    if (state is CallRinging) {
+    if (state is CallRinging && _pendingOffer != null) {
       final call = (state as CallRinging).call;
       await _webRTCService.initialize(isVideo: call.type == CallType.video);
       
+      final answer = await _webRTCService.createAnswer(_pendingOffer!);
+      _signalingService.sendAnswer(call.callerId, answer.toMap());
+      _pendingOffer = null;
+
+      // Process queued candidates
+      for (var candidate in _iceCandidateQueue) {
+        await _webRTCService.addIceCandidate(candidate);
+      }
+      _iceCandidateQueue.clear();
+
       emit(CallActive(
         call: call.copyWith(status: CallStatus.connected),
         localRenderer: _localRenderer,
@@ -88,10 +115,26 @@ class CallCubit extends Cubit<CallState> {
     }
   }
 
+  Future<void> _onIceCandidateReceived(Map<String, dynamic> data) async {
+    final candidate = RTCIceCandidate(data['candidate'], data['sdpMid'], data['sdpMLineIndex']);
+    if (state is CallActive) {
+      await _webRTCService.addIceCandidate(candidate);
+    } else {
+      _iceCandidateQueue.add(candidate);
+    }
+  }
+
+  Future<void> _onAnswerReceived(Map<String, dynamic> data) async {
+    if (state is CallActive) {
+      final answer = RTCSessionDescription(data['sdp'], data['type']);
+      await _webRTCService.setRemoteDescription(answer);
+    }
+  }
+
   void endCall() {
     if (state is CallActive) {
       final call = (state as CallActive).call;
-      final peerId = call.callerId == 'me' ? call.receiverId : call.callerId;
+      final peerId = call.callerId == _currentUserId ? call.receiverId : call.callerId;
       _signalingService.endCall(peerId);
     }
     _cleanup();
@@ -112,31 +155,6 @@ class CallCubit extends Cubit<CallState> {
       _webRTCService.toggleVideo(!activeState.isVideoOff);
       emit(activeState.copyWith(isVideoOff: !activeState.isVideoOff));
     }
-  }
-
-  // Signaling Handlers
-  void _onIncomingCall(CallModel call) {
-    emit(CallRinging(call));
-  }
-
-  Future<void> _onOfferReceived(Map<String, dynamic> data) async {
-    if (state is CallRinging) {
-      final offer = RTCSessionDescription(data['sdp'], data['type']);
-      final answer = await _webRTCService.createAnswer(offer);
-      _signalingService.sendAnswer((state as CallRinging).call.callerId, answer.toMap());
-    }
-  }
-
-  Future<void> _onAnswerReceived(Map<String, dynamic> data) async {
-    if (state is CallActive) {
-      final answer = RTCSessionDescription(data['sdp'], data['type']);
-      await _webRTCService.setRemoteDescription(answer);
-    }
-  }
-
-  Future<void> _onIceCandidateReceived(Map<String, dynamic> data) async {
-    final candidate = RTCIceCandidate(data['candidate'], data['sdpMid'], data['sdpMLineIndex']);
-    await _webRTCService.addIceCandidate(candidate);
   }
 
   void _onCallEnded() {
